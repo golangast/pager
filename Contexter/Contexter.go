@@ -59,7 +59,7 @@ func AddContext(ctx context.Context, next http.Handler) http.Handler {
 			R:      r.WithContext(ctx).Response,
 			D:      Duration,
 			H:      r.WithContext(ctx).Header,
-			I:      Clients.ReadUserIP(r),
+			I:      ReadUserIP(r),
 		}
 
 		fmt.Println(Blue("/ʕ◔ϖ◔ʔ/````````````````````````````````````````````"))
@@ -81,4 +81,32 @@ func AddContext(ctx context.Context, next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 	})
+}
+
+type Clients struct {
+	IP    string
+	URLS  *url.URL
+	Email string
+	Name  string
+}
+
+var Clientss []Clients
+
+func Clientget(ip string, urls *url.URL, email string, name string) []Clients {
+	c := Clients{IP: ip, URLS: urls, Email: email, Name: name}
+	cc := append(Clientss, c)
+	fmt.Println(cc)
+	return cc
+}
+
+//ReadUserIP gets ip address.
+func ReadUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
 }
