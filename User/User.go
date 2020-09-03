@@ -1,14 +1,31 @@
 package main
 
+//User who creates pages
 type User struct {
-	Name  string
-	Email string
-	Pages string
+	Id     int
+	Name   string
+	Email  string
+	Pass   string
+	Author string
 }
 
-func (u user) createPage() string {
+//Page that are created.
+type Page struct {
+	ID    string
+	Book  string
+	Page  string
+	Users User
+}
+
+func (u user) createPage(u User) string {
+	users := getAllUsers()
 	//dateabase stuff to add a page
-	//id,user,page
+
+	//check user
+	if User.Email == users.Email {
+
+	}
+	//create the page
 
 }
 func (u user) createBook() string {
