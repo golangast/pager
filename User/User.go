@@ -1,34 +1,80 @@
+/*things to know about this.
+1. behavior is just creating things
+2. borrows a lot from DB.go
+3. Pages has all other structs
+*/
 package main
 
-//User who creates pages
+import "fmt"
+
+//User is user but Author is user email
 type User struct {
-	Id     int
-	Name   string
-	Email  string
-	Pass   string
-	Author string
+	ID    int
+	Name  string
+	Email string
+	Pass  string
 }
 
-//Page that are created.
-type Page struct {
-	ID    string
-	Book  string
-	Page  string
-	Users User
+//Pages that are created.
+type Pages struct {
+	ID     int
+	Book   string
+	Page   string
+	Author User.Email
+	Cont   Contents
 }
 
-func (u user) createPage(u User) string {
+//Books that are created.
+type Books struct {
+	ID   int
+	Page Pages
+}
+
+//Contents that are created.
+type Contents struct {
+	ID      int
+	PageID  int
+	Content string
+}
+
+/*
+! behavior of User package
+* 1. creatPage()
+* 2. createBook()
+*/
+func (u user) createPage(p Pages) string {
 	users := getAllUsers()
-	//dateabase stuff to add a page
 
 	//check user
-	if User.Email == users.Email {
-
+	if p.Page.Author == users.Email {
+		//create the page
+		DB.InsertPage(u, p)
+	} else {
+		fmt.Println("not the user")
 	}
-	//create the page
 
 }
-func (u user) createBook() string {
-	//dateabase stuff to add a book
-	//id,user,book
+
+func (u user) createBook(b Books) string {
+	users := getAllUsers()
+
+	//check user
+	if b.Page.Author == users.Email {
+		//create the page
+		DB.InsertBook(b)
+	} else {
+		fmt.Println("not the user")
+	}
+}
+
+func (u user) createContent(p Pages) string {
+	users := getAllUsers()
+
+	//check user
+	if p.Page.Author == users.Email {
+		//create the page
+		DB.InsertContent(p)
+	} else {
+		fmt.Println("not the user")
+	}
 }
