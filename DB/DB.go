@@ -12,9 +12,16 @@ type User struct {
 	Email string
 	Pass  string
 }
+//User is user but Author is user email
+type Pages struct {
+	ID    int
+	Name  string
+	URL string
+	ContentID int
+}
 
 //Pages that are created.
-type Pages struct {
+type Library struct {
 	ID     string
 	Book   string
 	Page   string
@@ -25,7 +32,9 @@ type Pages struct {
 //Contents that are created.
 type Books struct {
 	ID   string
-	Page Pages
+	PageID string
+	Name string
+	Author string
 }
 
 //Contents that are created.
@@ -48,7 +57,7 @@ func GetAllUsers() User{
 
 	i := 0
 
-	rows, err := db.Query("select * from userpage")
+	rows, err := db.Query("select * from user")
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &email, &pass)
 		if err != nil {
@@ -64,24 +73,24 @@ func GetAllUsers() User{
 	return user
 }
 
-func InsertPage(u User, p Pages){
+func InsertPage(p Pages){
 	fmt.Println("creating page")
 	db:=createConn()
-	stmt, err := db.Prepare("INSERT INTO pages(book, page, author) VALUES(?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO pages(Name, URL, ContentID) VALUES(?, ?, ?)")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		userstemp := Data{P: Page{Book: p.Book, Page: p.Page, Author: u.Email, Cont: p.Contents}}
+		userstemp := Data{P: Pages{Name: p.Name, URL: p.URL, ContentID:p.ContentID}}
 		fmt.Println(userstemp)
 
-		p := userstemp
-		s, err := Save(p)
+		l := userstemp
+		s, err := Save(l)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		res, err := stmt.Exec(s.P.Book, s.P.Page, s.P.Author, s.P.Cont)
+		res, err := stmt.Exec(s.P.Name, s.P.URL, s.P.ContentID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -100,12 +109,12 @@ func InsertPage(u User, p Pages){
 func InsertBook(b Books){
 	fmt.Println("creating book")
 	db:=createConn()
-	stmt, err := db.Prepare("INSERT INTO Books(book, page, author) VALUES(?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO Books(PageID, Name, Author) VALUES(?, ?, ?)")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		userstemp := Data{P: Books{Book: b.Page.Book, Page: b.Page.Page, Author: b.Page.Author, Cont: b.Page.Cont}}
+		userstemp := Data{B: Books{PageID: b.PageID, Name: b.Name, Author: b.Author}}
 		fmt.Println(userstemp)
 
 		p := userstemp
@@ -114,7 +123,7 @@ func InsertBook(b Books){
 			log.Fatal(err)
 		}
 
-		res, err := stmt.Exec(s.P.Book, s.P.Page, s.P.Author, s.P.Cont)
+		res, err := stmt.Exec(s.B.PageID, s.B.Name, s.B.Author)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,24 +139,24 @@ func InsertBook(b Books){
 		fmt.Println("reached query")
 
 }
-func InsertContent(p Pages){
+func InsertContent(pageid int, content string){
 	fmt.Println("creating book")
 	db:=createConn()
-	stmt, err := db.Prepare("INSERT INTO Content(pageid, content) VALUES(?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO Content(Content) VALUES(?)")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		userstemp := Data{C: Contents{PageID: p.ID, Content: p.Contents}}
+		userstemp := Data{C: Contents{PageID: pageid, Content: content}}
 		fmt.Println(userstemp)
 
-		p := userstemp
-		s, err := Save(p)
+		P := userstemp
+		s, err := Save(P)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		res, err := stmt.Exec(s.P.Cont)
+		res, err := stmt.Exec(s.P.ID, s.P.Cont)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -161,12 +170,14 @@ func InsertContent(p Pages){
 		}
 		log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
 		fmt.Println("reached query")
+
+
 
 }
 func createConn()return *DB{
 	//opening database
 	fmt.Println("db begin")
-	db, err := sql.Open("mysql", "root:@/user")
+	db, err := sql.Open("mysql", "root:@/userpage")
 	if err != nil {
 		fmt.Println(err)
 	} else {

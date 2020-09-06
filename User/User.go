@@ -13,27 +13,39 @@ type User struct {
 	Name  string
 	Email string
 	Pass  string
+	Lib   Library
+}
+
+//User is user but Author is user email
+type Pages struct {
+	ID        int
+	Name      string
+	URL       string
+	ContentID int
+	Cont      Contents
 }
 
 //Pages that are created.
-type Pages struct {
-	ID     int
+type Library struct {
+	ID     string
 	Book   string
 	Page   string
 	Author User.Email
-	Cont   Contents
+	Book   Books
 }
 
-//Books that are created.
+//Contents that are created.
 type Books struct {
-	ID   int
-	Page Pages
+	ID     string
+	PageID string
+	Name   string
+	Author string
+	Page   Pages
 }
 
 //Contents that are created.
 type Contents struct {
-	ID      int
-	PageID  int
+	ID      string
 	Content string
 }
 
@@ -42,38 +54,39 @@ type Contents struct {
 * 1. creatPage()
 * 2. createBook()
 */
-func (u user) createPage(p Pages) string {
+func (u user) createPage() {
 	users := getAllUsers()
 
 	//check user
 	if p.Page.Author == users.Email {
 		//create the page
-		DB.InsertPage(u, p)
+		DB.InsertPage(u.Library.Books.Pages)
 	} else {
 		fmt.Println("not the user")
 	}
 
 }
 
-func (u user) createBook(b Books) string {
+func (u user) createBook() {
 	users := getAllUsers()
 
 	//check user
 	if b.Page.Author == users.Email {
 		//create the page
-		DB.InsertBook(b)
+		DB.InsertBook(u.Library.Books)
 	} else {
 		fmt.Println("not the user")
 	}
 }
 
-func (u user) createContent(p Pages) string {
+func (u user) createContent(pageid int, content string) {
 	users := getAllUsers()
 
 	//check user
 	if p.Page.Author == users.Email {
-		//create the page
-		DB.InsertContent(p)
+		//create the Content
+
+		DB.InsertContent(pageid, content)
 	} else {
 		fmt.Println("not the user")
 	}

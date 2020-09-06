@@ -12,7 +12,7 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/post", run)
+	mux.HandleFunc("/me", run)
 	handler := cors.Default().Handler(mux)
 	c := context.Background()
 	log.Fatal(http.ListenAndServe(":8081", Contextor.AddContext(c, handler)))
@@ -20,4 +20,5 @@ func main() {
 }
 func run(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("works")
+	User.createContent(2, "something")
 }
