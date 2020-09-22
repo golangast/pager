@@ -1,8 +1,9 @@
-package main
+package DB
 
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 //User is user but Author is user email
@@ -11,13 +12,15 @@ type User struct {
 	Name  string
 	Email string
 	Pass  string
+	Library
 }
+
 //User is user but Author is user email
 type Pages struct {
-	ID    int
-	Name  string
-	URL string
-	ContentID int
+	ID      int
+	Name    string
+	URL     string
+	Content string
 }
 
 //Pages that are created.
@@ -25,39 +28,64 @@ type Library struct {
 	ID     string
 	Book   string
 	Page   string
-	Author User.Email
-	Cont   Contents
+	Author string
+	Books
 }
 
 //Contents that are created.
 type Books struct {
-	ID   string
+	ID     string
 	PageID string
-	Name string
+	Name   string
 	Author string
+	Pages
 }
 
-//Contents that are created.
-type Contents struct {
-	ID      string
-	Content string
+type Data struct {
+	P Pages
+	B Books
+	L Library
+	S Sanitizer
+}
+type Sanitizer interface {
+	Sanitize()
 }
 
-func GetAllUsers() User{
-	db:=createConn()
+func Save(l Data) (Data, error) {
+	var err error
+
+	// type assertion for Sanitizer (could also use a type switch)
+	s, ok := l.S.(Sanitizer)
+
+	if !ok {
+		if err != nil {
+			log.Fatal(err)
+		}
+		// ... save without sanitization
+		return l, err
+	}
+
+	s.Sanitize()
+	return l, err
+}
+func GetAllUsers() []User {
+	db := createConn()
 	defer db.Close()
 	var (
 		id    int
 		email string
 		name  string
 		pass  string
-		author string
+
 		user []User
 	)
 
 	i := 0
 
 	rows, err := db.Query("select * from user")
+	if err != nil {
+		log.Fatal(err)
+	}
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &email, &pass)
 		if err != nil {
@@ -73,108 +101,108 @@ func GetAllUsers() User{
 	return user
 }
 
-func InsertPage(p Pages){
+func InsertPage(Name string, URL string, c string) {
 	fmt.Println("creating page")
-	db:=createConn()
-	stmt, err := db.Prepare("INSERT INTO pages(Name, URL, ContentID) VALUES(?, ?, ?)")
-		if err != nil {
-			log.Fatal(err)
-		}
+	db := createConn()
+	stmt, err := db.Prepare("INSERT INTO pages(Name, URL, Content) VALUES(?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	userstemp := Data{P: Pages{Name: Name, URL: URL, Content: c}}
 
-		userstemp := Data{P: Pages{Name: p.Name, URL: p.URL, ContentID:p.ContentID}}
-		fmt.Println(userstemp)
+	fmt.Println(userstemp)
 
-		l := userstemp
-		s, err := Save(l)
-		if err != nil {
-			log.Fatal(err)
-		}
+	l := userstemp
+	s, err := Save(l)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		res, err := stmt.Exec(s.P.Name, s.P.URL, s.P.ContentID)
-		if err != nil {
-			log.Fatal(err)
-		}
-		lastId, err := res.LastInsertId()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rowCnt, err := res.RowsAffected()
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
-		fmt.Println("reached query")
+	res, err := stmt.Exec(s.P.Name, s.P.URL, s.P.Content)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("affected = %d\n", lastId, rowCnt)
+	fmt.Println("reached query")
 
 }
-func InsertBook(b Books){
+
+func InsertBook(b Books) {
 	fmt.Println("creating book")
-	db:=createConn()
+	db := createConn()
 	stmt, err := db.Prepare("INSERT INTO Books(PageID, Name, Author) VALUES(?, ?, ?)")
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		userstemp := Data{B: Books{PageID: b.PageID, Name: b.Name, Author: b.Author}}
-		fmt.Println(userstemp)
+	userstemp := Data{B: Books{PageID: b.PageID, Name: b.Name, Author: b.Author}}
+	fmt.Println(userstemp)
 
-		p := userstemp
-		s, err := Save(p)
-		if err != nil {
-			log.Fatal(err)
-		}
+	p := userstemp
+	s, err := Save(p)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		res, err := stmt.Exec(s.B.PageID, s.B.Name, s.B.Author)
-		if err != nil {
-			log.Fatal(err)
-		}
-		lastId, err := res.LastInsertId()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rowCnt, err := res.RowsAffected()
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
-		fmt.Println("reached query")
+	res, err := stmt.Exec(s.B.PageID, s.B.Name, s.B.Author)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
+	fmt.Println("reached query")
 
 }
-func InsertContent(pageid int, content string){
+func UpdateContent(pageid int, content string) {
 	fmt.Println("creating book")
-	db:=createConn()
-	stmt, err := db.Prepare("INSERT INTO Content(Content) VALUES(?)")
-		if err != nil {
-			log.Fatal(err)
-		}
+	db := createConn()
 
-		userstemp := Data{C: Contents{PageID: pageid, Content: content}}
-		fmt.Println(userstemp)
+	stmt, err := db.Prepare("UPDATE pages SET Content=? WHERE ID=?")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		P := userstemp
-		s, err := Save(P)
-		if err != nil {
-			log.Fatal(err)
-		}
+	userstemp := Data{P: Pages{Content: content}}
+	fmt.Println(userstemp)
 
-		res, err := stmt.Exec(s.P.ID, s.P.Cont)
-		if err != nil {
-			log.Fatal(err)
-		}
-		lastId, err := res.LastInsertId()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rowCnt, err := res.RowsAffected()
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
-		fmt.Println("reached query")
+	C := userstemp
+	s, err := Save(C)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-
+	res, err := stmt.Exec(s.P.Content)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
+	fmt.Println("reached query")
 
 }
-func createConn()return *DB{
+func createConn() *sql.DB {
 	//opening database
 	fmt.Println("db begin")
 	db, err := sql.Open("mysql", "root:@/userpage")
@@ -190,4 +218,5 @@ func createConn()return *DB{
 	} else {
 		fmt.Println("ping ")
 	}
+	return db
 }

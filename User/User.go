@@ -3,9 +3,13 @@
 2. borrows a lot from DB.go
 3. Pages has all other structs
 */
-package main
+package User
 
-import "fmt"
+import (
+	"fmt"
+
+	DB "github.com/golangast/pager/DB"
+)
 
 //User is user but Author is user email
 type User struct {
@@ -13,81 +17,81 @@ type User struct {
 	Name  string
 	Email string
 	Pass  string
-	Lib   Library
+	Library
 }
 
 //User is user but Author is user email
 type Pages struct {
-	ID        int
-	Name      string
-	URL       string
-	ContentID int
-	Cont      Contents
+	ID      int
+	Name    string
+	URL     string
+	Content string
 }
 
 //Pages that are created.
 type Library struct {
-	ID     string
+	ID     int
 	Book   string
 	Page   string
-	Author User.Email
-	Book   Books
+	Author string
+	Books
 }
 
 //Contents that are created.
 type Books struct {
-	ID     string
+	ID     int
 	PageID string
 	Name   string
 	Author string
-	Page   Pages
-}
-
-//Contents that are created.
-type Contents struct {
-	ID      string
-	Content string
+	Pages
 }
 
 /*
 ! behavior of User package
 * 1. creatPage()
 * 2. createBook()
+* 3. createContent()
 */
-func (u user) createPage() {
-	users := getAllUsers()
+func CreatePage(u User, Name string, URL string, c string) {
+	users := DB.GetAllUsers()
 
-	//check user
-	if p.Page.Author == users.Email {
-		//create the page
-		DB.InsertPage(u.Library.Books.Pages)
-	} else {
-		fmt.Println("not the user")
+	for _, v := range users {
+		//check user
+
+		if User.Email == v.Email {
+			//create the page
+			DB.InsertPage(Name, URL, c)
+		} else {
+			fmt.Println("not the user")
+		}
 	}
 
 }
 
-func (u user) createBook() {
-	users := getAllUsers()
-
-	//check user
-	if b.Page.Author == users.Email {
-		//create the page
-		DB.InsertBook(u.Library.Books)
-	} else {
-		fmt.Println("not the user")
+func CreateBook(u User, b Books) {
+	users := DB.GetAllUsers()
+	for _, v := range users {
+		//check user
+		if User.Email == v.Email {
+			//create the page
+			DB.InsertBook(b)
+		} else {
+			fmt.Println("not the user")
+		}
 	}
 }
 
-func (u user) createContent(pageid int, content string) {
-	users := getAllUsers()
+func CreateContent(u User, pageid int, content string) {
+	users := DB.GetAllUsers()
 
-	//check user
-	if p.Page.Author == users.Email {
-		//create the Content
+	for _, v := range users {
+		//check user
+		if User.Email == v.Email {
 
-		DB.InsertContent(pageid, content)
-	} else {
-		fmt.Println("not the user")
+			//create the Content
+			DB.UpdateContent(pageid, content)
+		} else {
+			fmt.Println("not the user")
+		}
 	}
 }
